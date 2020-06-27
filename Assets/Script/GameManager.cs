@@ -7,23 +7,51 @@ public class GameManager : MonoBehaviour
 {
     public Tile[] highlightTile = new Tile[6];
     public Tilemap tilemap;
-    private Vector3Int tilemapSize = new Vector3Int(27, 17, 1);
+    private Vector3Int tilemapSize;
+    public List<Vector3Int> tilePositionList;
 
     public GameObject player;
     public List<GameObject> playerList = new List<GameObject>();
     private Vector3Int playerDirection = new Vector3Int(-1, 0, 0);
 
+    private Vector2Int tilemapBoundMax;
+    private Vector2Int tilemapBoundMin;
+
+    private Vector2 playTilemapMax;
+    private Vector2 playTilemapMin;
+
     public GameObject fruit;
+
+
 
     private bool dead = false;
 
     private void Start()
     {
+        Vector3Int size = aspectRatio();
+        //size.x *= 2;
+        //size.y *= 2;
+        tilemapSize = size;
         createMap();
+
+        Camera cam = Camera.main;
+        Vector3Int centerTilemap = new Vector3Int((int)tilemap.cellBounds.center.x, (int)tilemap.cellBounds.center.y, (int)tilemap.cellBounds.center.z);
+        Vector3 newPosition = tilemap.CellToWorld(centerTilemap);
+        newPosition.z = -10;
+        cam.transform.position = newPosition;
+
+        tilemapBoundMax = new Vector2Int(tilemap.cellBounds.xMax, tilemap.cellBounds.yMax);
+        tilemapBoundMin = new Vector2Int(tilemap.cellBounds.xMin, tilemap.cellBounds.yMin);
+
+        Debug.Log(tilemapBoundMax);
+        Debug.Log(tilemapBoundMin);
+
+        playTilemapMax = tilemapBoundMax - new Vector2(1.5f, 1.5f);
+        playTilemapMin = tilemapBoundMin + new Vector2(1.5f, 1.5f);
 
         createAddPlayer();
         playerList[0].name += "Head";
-        playerList[0].transform.position = new Vector3(0.5f, 0.5f);
+        playerList[0].transform.position = centerTilemap + new Vector3(0.5f, 0.5f);
 
         fruit = Instantiate(fruit, newFruitLocation(), Quaternion.identity);
         
@@ -61,17 +89,19 @@ public class GameManager : MonoBehaviour
         {
             for (int w = tilemap.cellBounds.xMin; w < tilemap.cellBounds.xMax; ++w)
             {
+                Vector3Int tilePosition = new Vector3Int(w, h, 0);
                 if (h == tilemap.cellBounds.yMin ||
                     w == tilemap.cellBounds.xMin ||
                     h == tilemap.cellBounds.yMax - 1 ||
                     w == tilemap.cellBounds.xMax - 1)
                 {
-                    tilemap.SetTile(new Vector3Int(w, h, 0), highlightTile[2]);
+                    tilemap.SetTile(tilePosition, highlightTile[2]);
                 }
                 else
                 {
-                    tilemap.SetTile(new Vector3Int(w, h, 0), highlightTile[1]);
+                    tilemap.SetTile(tilePosition, highlightTile[1]);
                 }
+                tilePositionList.Add(tilePosition);
             }
         }
     }
@@ -108,21 +138,21 @@ public class GameManager : MonoBehaviour
         }
 
 
-        if (newPosition.x > 14.5f)
+        if (newPosition.x > playTilemapMax.x)
         {
-            newPosition.x = -9.5f;
+            newPosition.x = playTilemapMin.x;
         }
-        else if (newPosition.x < -9.5f)
+        else if (newPosition.x < playTilemapMin.x)
         {
-            newPosition.x = 14.5f;
+            newPosition.x = playTilemapMax.x;
         }
-        if (newPosition.y > 7.5f)
+        if (newPosition.y > playTilemapMax.y)
         {
-            newPosition.y = -6.5f;
+            newPosition.y = playTilemapMin.y;
         }
-        else if (newPosition.y < -6.5f)
+        else if (newPosition.y < playTilemapMin.y)
         {
-            newPosition.y = 7.5f;
+            newPosition.y = playTilemapMax.y;
         }
 
         playerList[0].transform.position = newPosition;
@@ -149,11 +179,23 @@ public class GameManager : MonoBehaviour
 
     Vector3 newFruitLocation()
     {
-        float x = Random.Range(-10, 15) + 0.5f;
-        float y = Random.Range(-7, 7) + 0.5f;
+        float x = (int)Random.Range(playTilemapMin.x, playTilemapMax.x) + 0.5f;
+        float y = (int)Random.Range(playTilemapMin.y, playTilemapMax.y) + 0.5f;
+
 
         Vector3 newLocation = new Vector3(x, y);
 
         return newLocation;
+    }
+
+    Vector3Int aspectRatio()
+    {
+        Vector3Int myAspect = new Vector3Int();
+        Camera cam = Camera.main;
+
+        myAspect.y = (int)(2.0f * cam.orthographicSize);
+        myAspect.x = (int)(myAspect[1] * cam.aspect);
+
+        return myAspect;
     }
 }
