@@ -29,15 +29,20 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         Vector3Int size = aspectRatio();
-        //size.x *= 2;
-        //size.y *= 2;
         tilemapSize = size;
+
         createMap();
 
         Camera cam = Camera.main;
-        Vector3Int centerTilemap = new Vector3Int((int)tilemap.cellBounds.center.x, (int)tilemap.cellBounds.center.y, (int)tilemap.cellBounds.center.z);
+
+        Vector3Int centerTilemap = new Vector3Int((int)tilemap.cellBounds.center.x,
+                                                  (int)tilemap.cellBounds.center.y,
+                                                  (int)tilemap.cellBounds.center.z);
+
         Vector3 newPosition = tilemap.CellToWorld(centerTilemap);
+
         newPosition.z = -10;
+
         cam.transform.position = newPosition;
 
         tilemapBoundMax = new Vector2Int(tilemap.cellBounds.xMax, tilemap.cellBounds.yMax);
@@ -50,6 +55,7 @@ public class GameManager : MonoBehaviour
         playTilemapMin = tilemapBoundMin + new Vector2(1.5f, 1.5f);
 
         createAddPlayer();
+
         playerList[0].name += "Head";
         playerList[0].transform.position = centerTilemap + new Vector3(0.5f, 0.5f);
 
@@ -85,11 +91,13 @@ public class GameManager : MonoBehaviour
     private void createMap()
     {
         tilemap.size = tilemapSize;
+
         for (int h = tilemap.cellBounds.yMin; h < tilemap.cellBounds.yMax; ++h)
         {
             for (int w = tilemap.cellBounds.xMin; w < tilemap.cellBounds.xMax; ++w)
             {
                 Vector3Int tilePosition = new Vector3Int(w, h, 0);
+
                 if (h == tilemap.cellBounds.yMin ||
                     w == tilemap.cellBounds.xMin ||
                     h == tilemap.cellBounds.yMax - 1 ||
@@ -101,6 +109,7 @@ public class GameManager : MonoBehaviour
                 {
                     tilemap.SetTile(tilePosition, highlightTile[1]);
                 }
+
                 tilePositionList.Add(tilePosition);
             }
         }
@@ -193,9 +202,9 @@ public class GameManager : MonoBehaviour
         Vector3Int myAspect = new Vector3Int();
         Camera cam = Camera.main;
 
-        myAspect.y = (int)(2.0f * cam.orthographicSize);
-        myAspect.x = (int)(myAspect[1] * cam.aspect);
-
+        myAspect.y = Mathf.RoundToInt(2.0f * cam.orthographicSize);
+        myAspect.x = Mathf.RoundToInt(myAspect.y * cam.aspect);
+        Debug.Log(myAspect.y * cam.aspect);
         return myAspect;
     }
 }
